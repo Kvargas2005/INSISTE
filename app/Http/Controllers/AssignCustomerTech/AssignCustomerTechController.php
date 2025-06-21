@@ -5,6 +5,7 @@ namespace App\Http\Controllers\AssignCustomerTech;
 use App\Http\Controllers\Controller;
 use App\Models\AssignCustomerTech;
 use App\Models\User;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -43,16 +44,18 @@ class AssignCustomerTechController extends Controller
             ->select('id', 'name')
             ->get();
 
+        $services = Service::select('id', 'description')->where('status', 1)->get();
         return Inertia::render('assignCustomerTech/list', [
             'customers' => $customers,
             'technicians' => $technicians,
+            'services' => $services,
         ]);
     }
 
 
     public function view()
     {
-        $assignments = AssignCustomerTech::with(['technician', 'customer'])
+        $assignments = AssignCustomerTech::with(['technician', 'customer', 'services'])
             ->select('id', 'id_technician', 'id_customer', 'assign_date', 'tech_status', 'start_date', 'end_date', 'status', 'comments') // ← agrega 'status'
             ->get();
 
@@ -65,10 +68,12 @@ class AssignCustomerTechController extends Controller
             ->select('id', 'name')
             ->get();
 
+        $services = Service::select('id', 'description')->where('status', 1)->get();
         return Inertia::render('assignCustomerTech/view', [
             'assignments' => $assignments,
             'customers' => $customers,
             'technicians' => $technicians,
+            'services' => $services,
         ]);
     }
 
@@ -82,10 +87,16 @@ class AssignCustomerTechController extends Controller
             'selectedCustomers.*' => 'exists:users,id',
             'assign_date' => 'nullable|date',
             'comments' => 'nullable|string|max:255',
+            'services' => 'nullable|array',
+            'services.*' => 'exists:service,id',
+        ]);
+
+        $request->merge([
+            'services' => is_array($request->services) ? $request->services : (is_string($request->services) ? array_filter(explode(',', $request->services)) : [])
         ]);
 
         foreach ($request->selectedCustomers as $customerId) {
-            AssignCustomerTech::create([
+            $assignment = AssignCustomerTech::create([
                 'id_technician' => $request->id_technician,
                 'id_customer' => $customerId,
                 'assign_date' => $request->assign_date ?? now(),
@@ -94,6 +105,9 @@ class AssignCustomerTechController extends Controller
                 'status' => 1,
                 'comments' => $request->comments, 
             ]);
+            if ($request->has('services')) {
+                $assignment->services()->sync($request->services);
+            }
         }
 
         return to_route('assignCustomerTech.list')->with('success', 'Clientes asignados correctamente.');
@@ -102,8 +116,7 @@ class AssignCustomerTechController extends Controller
 
     public function fetchAssignment($id)
     {
-        $assignment = AssignCustomerTech::findOrFail($id);
-
+        $assignment = AssignCustomerTech::with('services')->findOrFail($id);
         return response()->json([
             'data' => [
                 'id_technician' => $assignment->id_technician,
@@ -111,6 +124,7 @@ class AssignCustomerTechController extends Controller
                 'comments' => $assignment->comments,
                 'alert_days' => $assignment->alert_days,
                 'assign_date' => $assignment->assign_date ? date('Y-m-d\TH:i', strtotime($assignment->assign_date)) : null,
+                'services' => $assignment->services->pluck('id')->toArray(),
             ]
         ]);
     }
@@ -125,6 +139,9 @@ class AssignCustomerTechController extends Controller
             'assign_date' => 'required|date',
         ]);
 
+        $request->merge([
+            'services' => is_array($request->services) ? $request->services : (is_string($request->services) ? array_filter(explode(',', $request->services)) : [])
+        ]);
         $assignment = AssignCustomerTech::findOrFail($id);
         $assignment->update([
             'id_technician' => $request->id_technician,
@@ -133,7 +150,9 @@ class AssignCustomerTechController extends Controller
             'alert_days' => $request->alert_days,
             'assign_date' => $request->assign_date,
         ]);
-
+        if ($request->has('services')) {
+            $assignment->services()->sync($request->services);
+        }
         return to_route('assignCustomerTech.view')->with('success', 'Asignación actualizada correctamente.');
     }
 

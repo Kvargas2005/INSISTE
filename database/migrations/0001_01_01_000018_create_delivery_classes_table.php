@@ -17,7 +17,7 @@ class CreateDeliveryClassesTable extends Migration
         DB::table('delivery_classes')->insert([
             ['name' => 'Instalación', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Reparación', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Rehubicación', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Reubicación', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Sustitución', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Materiales', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Mano Obra', 'created_at' => now(), 'updated_at' => now()],

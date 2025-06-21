@@ -14,4 +14,9 @@ class Service extends Model
         'sale_price',
         'purchase_price',
     ];
+
+      public function assignments()
+    {
+        return $this->belongsToMany(AssignCustomerTech::class, 'assign_customer_tech_service', 'service_id', 'assign_id');
+    }
 }

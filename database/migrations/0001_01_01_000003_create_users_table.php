@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->text('tech_signature')->nullable();
             $table->string('contact')->nullable();
             $table->string('code')->nullable();
+            $table->string('remember_token')->nullable();
 
             $table->string('driver_license')->nullable();
             $table->string('vehicle_brand')->nullable();

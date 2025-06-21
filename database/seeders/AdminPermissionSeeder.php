@@ -16,9 +16,18 @@ class AdminPermissionSeeder extends Seeder
             $this->command->warn('No se encontró el usuario admin@example.com');
             return;
         }
-
-        // Asigna todos los permisos existentes
+        // Crear el permiso si no existe
+        $perm = Permission::firstOrCreate([
+            'name' => 'assign_permissions'
+        ], [
+            'description' => 'Asignar permisos',
+            'main' => 'Usuarios',
+        ]);
+        // Asigna todos los permisos existentes + assign_permissions
         $allPermissions = Permission::pluck('id')->toArray();
+        if (!in_array($perm->id, $allPermissions)) {
+            $allPermissions[] = $perm->id;
+        }
         $admin->permissions()->sync($allPermissions);
         $this->command->info('Permisos asignados al admin.');
     }

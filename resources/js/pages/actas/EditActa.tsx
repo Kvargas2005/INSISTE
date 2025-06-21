@@ -22,7 +22,7 @@ interface User { id: number; name: string; }
 interface Options { value: number; label: string; }
 interface ComponentStock {
   id_component: number;
-  component_name: string;
+  description: string;
   quantity: number;
   warehouse_name: string;
   id_warehouse: number;
@@ -46,7 +46,7 @@ interface FormValues {
   client_signature: string;
   notes: string;
   is_open: boolean;
-  components: { id_component: number; component_name: string; quantity: number; warehouse_name: string; }[];
+  components: { id_component: number; description: string; quantity: number; warehouse_name: string; }[];
   services: number[];
   service_detail: string;
 }
@@ -85,13 +85,14 @@ export default function EditActa({ acta, users, services, techStock, technicians
     }))
   );
 
+
   useEffect(() => {
     setData('job_type', selectedJobs.map(j => j.value));
     setData('delivery_class', selectedDeliverys.map(d => d.value));
     setData('services', selectedServices.map(s => s.value));
     setData('components', selectedComponents.map(c => ({
       id_component: c.id_component,
-      component_name: c.component_name,
+      description: c.description,
       quantity: c.quantity,
       warehouse_name: c.warehouse_name,
     })));
@@ -270,7 +271,7 @@ export default function EditActa({ acta, users, services, techStock, technicians
               <tbody>
                 {selectedComponents.map((item, idx) => (
                   <tr key={idx}>
-                    <td className="border text-center px-4 py-2">{item.component_name}</td>
+                    <td className="border text-center px-4 py-2">{item.description}</td>
                     <td className="border text-center px-4 py-2">
                       <Input
                         type="number"

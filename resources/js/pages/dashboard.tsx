@@ -54,6 +54,7 @@ export default function Dashboard() {
       style={{ boxShadow: `-1px 21px 30px -14px ${color}` }}
       href={href || '#'}
     >
+
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{ background: gradient }}
@@ -88,38 +89,43 @@ export default function Dashboard() {
       <div className="flex h-full flex-1 flex-col gap-10 rounded-xl p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {canAccess([1]) && (
-        <>
-          <Card
-            title="Contabilidad"
-            description="Módulo Contabilidad"
-            icon={Receipt}
-            color="#FF6565"
-            gradient="linear-gradient(to top, #FF6565 0%, #F73939 71%, #ED1818 100%)"
-            href="/dashboardAcc"
-          />
-          <Card
-            title="Inventarios"
-            description="Inventarios, bodegas y productos"
-            icon={Package}
-            color="#3082FD"
-            gradient="linear-gradient(to top, #3082FD 0%, #418BFA 71%, #5C9BFA 100%)"
-            href="/dashboardInv"
-          />
-        </>
+            <>
+              <Card
+                title="Contabilidad"
+                description="Módulo Contabilidad"
+                icon={Receipt}
+                color="#FF6565"
+                gradient="linear-gradient(to top, #FF6565 0%, #F73939 71%, #ED1818 100%)"
+                href="/dashboardAcc"
+              />
+              <Card
+                title="Inventarios"
+                description="Inventarios, bodegas y productos"
+                icon={Package}
+                color="#3082FD"
+                gradient="linear-gradient(to top, #3082FD 0%, #418BFA 71%, #5C9BFA 100%)"
+                href="/dashboardInv"
+              />
+            </>
           )}
 
           {(canAccess([1, 2, 3])) && (
-        <Card
-          title="Actas"
-          description="Mira las actas creadas"
-          icon={Newspaper}
-          color="#EABB4E"
-          gradient="linear-gradient(to top, #EABB4E 0%, #FAD173 71%, #E8CB87 100%)"
-          href="/actas/list"
-        />
+            <Card
+              title="Actas"
+              description="Mira las actas creadas"
+              icon={Newspaper}
+              color="#EABB4E"
+              gradient="linear-gradient(to top, #EABB4E 0%, #FAD173 71%, #E8CB87 100%)"
+              href="/actas/list"
+            />
           )}
         </div>
       </div>
+      <nav>
+        <div className="text-gray-500 text-center py-2 text-sm font-semibold">
+          INTRA Seguridad Electrónica SE, S.A.
+        </div>
+      </nav>
     </AppLayout>
   );
 }

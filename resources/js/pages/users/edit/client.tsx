@@ -198,14 +198,14 @@ export default function EditUser({ user, roles, main_users }: Props) {
             </div>
 
             <div>
-              <Label htmlFor="main_user">Casa Matriz</Label>
+              <Label htmlFor="main_user">Cliente</Label>
               <select
                 id="main_user"
                 value={data.id_main_user}
                 onChange={(e) => setData('id_main_user', Number(e.target.value))}
                 className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Seleccione Casa Matriz</option>
+                <option value="">Seleccione Cliente</option>
                 {main_users.map((main_user) => (
                   <option key={main_user.id} value={main_user.id}>{main_user.name}</option>
                 ))}

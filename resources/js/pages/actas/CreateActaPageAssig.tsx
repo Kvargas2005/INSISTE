@@ -35,7 +35,8 @@ interface Props {
   technicians: User[]; // agregado
   assigment_id?: number; // opcional, si se usa en el componente
   deliverys: selects[];
-  jobs: selects[]
+  jobs: selects[];
+  assignment_services?: number[]; // <-- nuevo
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -43,7 +44,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Crear Acta', href: '/actas/create' },
 ];
 
-export default function CreateActaPage({ id_tech, tech_signature, users, services, techStock, technicians, assigment_id, deliverys, jobs }: Props) {
+export default function CreateActaPage({ id_tech, tech_signature, users, services, techStock, technicians, assigment_id, deliverys, jobs, assignment_services }: Props) {
   const { flash } = usePage<{
     flash: { success?: string; error?: string }
   }>().props;
@@ -82,6 +83,7 @@ export default function CreateActaPage({ id_tech, tech_signature, users, service
         technicians={technicians}  // ← nuevo
         deliverys={deliverys}
         jobs={jobs}
+        assignment_services={assignment_services} // <-- nuevo
       />
     </AppLayout>
   );

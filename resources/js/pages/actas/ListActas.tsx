@@ -34,16 +34,18 @@ interface FilterItem {
 }
 
 const filterOptions = [
-    { label: 'Código', key: 'code' },
+    { label: 'Alcance de Entrega', key: 'delivery_scope' }, // nuevo
     { label: 'Cliente', key: 'client' },
-    { label: 'Técnico', key: 'creator' },
-    { label: 'Proyecto', key: 'project' },
-    { label: 'Tipo de Servicio', key: 'service_type' },
-    { label: 'Clase de Entrega', key: 'delivery_class' },
-    { label: 'Tipo de Trabajo', key: 'job_type' },
-    { label: 'Tipo de Visita', key: 'visit_type' },
+    { label: 'Código', key: 'code' },
     { label: 'Fecha', key: 'start_time' },
+    { label: 'Proyecto', key: 'project' },
+    { label: 'Técnico', key: 'creator' },
+    { label: 'Tipo de Entrega', key: 'delivery_class' }, // nuevo
+    { label: 'Tipo de Servicios', key: 'service_type' }, // nuevo
+    { label: 'Tipo de Visita', key: 'visit_type' },
+    { label: 'Trabajo a Realizar', key: 'job_type' }, // nuevo
 ];
+
 
 export default function ActasList({ actas, canCreate }: Props) {
     const { flash } = usePage().props as unknown as { flash: { success?: string; error?: string } };
@@ -51,6 +53,9 @@ export default function ActasList({ actas, canCreate }: Props) {
     const [filters, setFilters] = React.useState<FilterItem[]>([]);
     const [newFilterKey, setNewFilterKey] = React.useState<string>('');
     const [filteredActas, setFilteredActas] = React.useState<Acta[]>(actas);
+
+    // Obtener opciones de filtros del backend
+    const { servicesOptions = [], deliveryClassOptions = [], jobTypeOptions = [], deliveryScopeOptions = [] } = usePage().props as any;
 
     useEffect(() => {
         if (flash.success) {
@@ -80,6 +85,8 @@ export default function ActasList({ actas, canCreate }: Props) {
     const { auth } = usePage<{ auth: { user: { id_role: number } } }>().props;
 
 
+    console.log(filteredActas)
+
     useEffect(() => {
         let result = actas;
 
@@ -101,27 +108,32 @@ export default function ActasList({ actas, canCreate }: Props) {
                 case 'project':
                     result = result.filter(a => a.project.toLowerCase().includes(valueLower));
                     break;
-                case 'service_type':
-                    result = result.filter(a => a.service_type.toLowerCase().includes(valueLower));
-                    break;
-                case 'delivery_class':
-                    result = result.filter(a => a.delivery_class.toLowerCase().includes(valueLower));
-                    break;
-                case 'job_type':
-                    result = result.filter(a => a.job_type.toLowerCase().includes(valueLower));
-                    break;
                 case 'visit_type':
                     result = result.filter(a => a.visit_type.toLowerCase().includes(valueLower));
                     break;
                 case 'start_time':
                     // Comparar sólo la parte de fecha (sin hora)
                     result = result.filter(a => {
-                        const filterDate = new Date(filter.value).toISOString().slice(0, 10);
-                        const actaDate = new Date(a.start_time).toISOString().slice(0, 10);
+                        // Restar un día a la fecha del filtro
+                        const filterDateObj = new Date(filter.value);
+                        filterDateObj.setDate(filterDateObj.getDate() + 1);
+                        const filterDate = filterDateObj.toLocaleString().slice(0, 10);
+                        const actaDate = new Date(a.start_time).toLocaleString().slice(0, 10);
                         return actaDate === filterDate;
                     });
                     break;
-
+                case 'service_type':
+                    result = result.filter(a => a.service_type && a.service_type.toLowerCase().includes(valueLower));
+                    break;
+                case 'delivery_class':
+                    result = result.filter(a => a.delivery_class && a.delivery_class.toLowerCase().includes(valueLower));
+                    break;
+                case 'job_type':
+                    result = result.filter(a => a.job_type && a.job_type.toLowerCase().includes(valueLower));
+                    break;
+                case 'delivery_scope':
+                    result = result.filter(a => a.delivery_scope && a.delivery_scope.toLowerCase().includes(valueLower));
+                    break;
                 default:
                     break;
             }
@@ -180,7 +192,18 @@ export default function ActasList({ actas, canCreate }: Props) {
                 <div className="space-y-2 max-w-xl">
                     {filters.map(filter => {
                         const isDate = filter.key === 'start_time';
-
+                        // Dropdowns para los filtros especiales
+                        const isDropdown = [
+                            'service_type',
+                            'delivery_class',
+                            'job_type',
+                            'delivery_scope',
+                        ].includes(filter.key);
+                        let options: string[] = [];
+                        if (filter.key === 'service_type') options = servicesOptions;
+                        if (filter.key === 'delivery_class') options = deliveryClassOptions;
+                        if (filter.key === 'job_type') options = jobTypeOptions;
+                        if (filter.key === 'delivery_scope') options = deliveryScopeOptions;
                         return (
                             <div key={filter.key} className="flex items-center gap-2">
                                 <input
@@ -200,6 +223,18 @@ export default function ActasList({ actas, canCreate }: Props) {
                                         onChange={e => handleFilterChange(filter.key, e.target.value)}
                                         className="border rounded px-2 py-1 text-sm w-full max-w-xs"
                                     />
+                                ) : isDropdown ? (
+                                    <select
+                                        id={filter.key}
+                                        value={filter.value}
+                                        onChange={e => handleFilterChange(filter.key, e.target.value)}
+                                        className="border rounded px-2 py-1 text-sm w-full max-w-xs"
+                                    >
+                                        <option value="">Todos</option>
+                                        {options.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
                                 ) : (
                                     <input
                                         id={filter.key}
@@ -259,12 +294,152 @@ export default function ActasList({ actas, canCreate }: Props) {
                 <table className="min-w-[900px] w-full border-collapse text-sm text-gray-500 dark:text-gray-400">
                     <thead className="bg-gray-100 dark:bg-gray-700">
                         <tr>
-                            <th className="text-left px-4 py-2">Código</th>
-                            <th className="text-left px-4 py-2">Cliente</th>
-                            <th className="text-left px-4 py-2">Técnico</th>
-                            <th className="text-left px-4 py-2">Contacto</th>
-                            <th className="text-left px-4 py-2">Tipo Visita</th>
-                            <th className="text-left px-4 py-2">Fecha</th>
+                            <th className="text-left px-4 py-2">
+                                Código
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar A-Z"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => a.code.localeCompare(b.code))
+                                        );
+                                    }}
+                                >▲</button>
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar Z-A"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => b.code.localeCompare(a.code))
+                                        );
+                                    }}
+                                >▼</button>
+                            </th>
+                            <th className="text-left px-4 py-2">Cliente
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar A-Z"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => a.client.name.localeCompare(b.client.name))
+                                        );
+                                    }}
+                                >▲</button>
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar Z-A"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => b.client.name.localeCompare(a.client.name))
+                                        );
+                                    }}
+                                >▼</button>
+                            </th>
+                            <th className="text-left px-4 py-2">Técnico
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar A-Z"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => a.creator.name.localeCompare(b.creator.name))
+                                        );
+                                    }}
+                                >▲</button>
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar Z-A"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => b.creator.name.localeCompare(a.creator.name))
+                                        );
+                                    }}
+                                >▼</button>
+                            </th>
+                            <th className="text-left px-4 py-2">Contacto
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar A-Z"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => a.contact.localeCompare(b.contact))
+                                        );
+                                    }}
+                                >▲</button>
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar Z-A"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => b.contact.localeCompare(a.contact))
+                                        );
+                                    }}
+                                >▼</button>
+                            </th>
+                            <th className="text-left px-4 py-2">Tipo Visita
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar A-Z"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => a.visit_type.localeCompare(b.visit_type))
+                                        );
+                                    }}
+                                >▲</button>
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Ordenar Z-A"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => b.visit_type.localeCompare(a.visit_type))
+                                        );
+                                    }}
+                                >▼</button>
+                            </th>
+                            <th className="text-left px-4 py-2">
+                                Fecha
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Más reciente primero"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
+                                        );
+                                    }}
+                                >▲</button>
+                                <button
+                                    className="ml-1 text-xs"
+                                    style={{ cursor: 'pointer' }}
+                                    title="Más antigua primero"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setFilteredActas(prev =>
+                                            [...prev].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+                                        );
+                                    }}
+                                >▼</button>
+                            </th>
                             <th className="text-left px-4 py-2">Estado</th>
                             {auth.user.id_role === 1 && (
                                 <>

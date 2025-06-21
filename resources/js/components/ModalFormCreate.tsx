@@ -26,8 +26,14 @@ interface ModalFormProps {
 }
 
 export default function ModalForm({ title, postRoute, inputs, onClose, extraData }: ModalFormProps) {
-  const initialData = inputs.reduce((acc, input) => ({ ...acc, [input.name]: '' }), {});
-  type FormData = { [key: string]: string | number | boolean | null };
+  // Inicializar campos, si es services debe ser array
+  const initialData = inputs.reduce((acc, input) => {
+    if (input.name === 'services') {
+      return { ...acc, [input.name]: [] };
+    }
+    return { ...acc, [input.name]: '' };
+  }, {});
+  type FormData = { [key: string]: string | number | boolean | null | (string | number)[] };
 
   const { data, setData, post, processing, errors } = useForm<FormData>(initialData);
 
@@ -64,15 +70,17 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
     setFilteredOptions(filtered);
   }, [filterDescription, filterFamily, filterBrand, originalOptions, hasComponentSelect]);
 
-  const submit: FormEventHandler = (e) => {
-    e.preventDefault();
-
+  useEffect(() => {
     if (extraData) {
       for (const key in extraData) {
         setData(key, extraData[key]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extraData]);
 
+  const submit: FormEventHandler = (e) => {
+    e.preventDefault();
     post(route(postRoute), {
       preserveScroll: true,
       onSuccess: () => {
@@ -115,7 +123,6 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
           </div>
         )}
 
-
         <form onSubmit={submit} className="flex flex-col gap-5">
           {inputs.map((input) => (
             <div key={input.name} className="flex flex-col">
@@ -123,7 +130,20 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
                 {input.label}
               </label>
 
-              {input.type === 'select' && input.selectType === 'react' && input.name === 'id_component' ? (
+              {input.type === 'select' && input.selectType === 'react' && input.name === 'services' ? (
+                <Select
+                  id={input.name}
+                  options={input.options}
+                  isMulti
+                  value={
+                    Array.isArray(data[input.name])
+                      ? input.options?.filter((o) => ((data[input.name] as unknown as (string | number)[]).includes(o.value))) || []
+                      : []
+                  }
+                  onChange={(selected) => setData(input.name, Array.isArray(selected) ? (selected as { value: string | number }[]).map((s) => s.value) : [])}
+                  className="w-full"
+                />
+              ) : input.type === 'select' && input.selectType === 'react' && input.name === 'id_component' ? (
                 <Select
                   id={input.name}
                   options={filteredOptions}

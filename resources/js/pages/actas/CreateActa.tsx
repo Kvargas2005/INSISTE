@@ -73,7 +73,8 @@ interface Props {
   id_assignment?: number; // opcional, si se usa en el componente
   technicians: User[];
   deliverys: Options[];
-  jobs: Options[]
+  jobs: Options[];
+  assignment_services?: number[]; // <-- nuevo
 }
 
 export default function CreateActa({
@@ -85,7 +86,8 @@ export default function CreateActa({
   technicians,
   id_assignment, // opcional, si se usa en el componente
   deliverys,
-  jobs
+  jobs,
+  assignment_services // <-- nuevo
 }: Props) {
   const { data, setData, post, processing, errors, reset } = useForm<FormValues>({
     technician_id: technicians.length > 0 ? 0 : id_tech,
@@ -324,6 +326,14 @@ export default function CreateActa({
       setData('visit_type', 'No Facturar');
     }
   }, [isParcial]);
+
+  // Preseleccionar servicios si vienen de la asignación
+  useEffect(() => {
+    if (id_assignment && assignment_services && assignment_services.length > 0) {
+      const preselected = services.filter(s => assignment_services.includes(s.value));
+      setSelectedServices(preselected);
+    }
+  }, [id_assignment, assignment_services, services]);
 
   return (
     <form className="flex flex-col gap-6 m-4" onSubmit={submit}>

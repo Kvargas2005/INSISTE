@@ -99,14 +99,14 @@ const ShowActa: React.FC<ActaProps> = ({
         // Nombre empresa al lado del logo (bold, 14)
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('INTRA Seguridad Electrónica SE, S.A', marginLeft + 160, 40);
+        pdf.text('INTRA Seguridad Electrónica SE, S.A', marginLeft + 267, 40);
 
         // Info empresa debajo nombre (normal, 10)
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Cédula Jurídica: 3-101-721464', marginLeft + 160, 58);
-        pdf.text('Mail: info@intrase.net', marginLeft + 160, 74);
-        pdf.text('Web: www.intrase.net', marginLeft + 160, 90);
+        pdf.text('Cédula Jurídica: 3-101-721464', marginLeft + 267, 58);
+        pdf.text('Mail: info@intrase.net', marginLeft + 267, 74);
+        pdf.text('Web: www.intrase.net', marginLeft + 267, 90);
 
         // Datos en dos columnas debajo título (normal, 11)
         const leftColX = marginLeft;
@@ -127,6 +127,8 @@ const ShowActa: React.FC<ActaProps> = ({
 
         // Derecha
         pdf.text(`N°: ${acta.code || acta.id}`, rightColX, currentY);
+        pdf.text(`Técnico: ${acta.creator?.name || ''}`, rightColX, currentY + lineHeight);
+
         // Mostrar fecha y hora solo si es admin, si no solo la fecha
         let fechaInicio = '';
         if (auth?.user?.id_role === 1) {
@@ -136,13 +138,13 @@ const ShowActa: React.FC<ActaProps> = ({
             // Solo la fecha
             fechaInicio = acta.start_time ? new Date(acta.start_time).toLocaleDateString('es-CR') : '';
         }
-        pdf.text(`Fecha Inicio: ${fechaInicio}`, rightColX, currentY + lineHeight);
+        pdf.text(`Fecha Inicio: ${fechaInicio}`, rightColX, currentY + lineHeight * 2);
+
         // Solo mostrar Fecha Fin si el usuario es admin (id_role === 1)
         if (auth?.user?.id_role === 1) {
             let fechaFin = acta.end_time ? new Date(acta.end_time).toLocaleString('es-CR', { hour12: false }) : '';
-            pdf.text(`Fecha Fin: ${fechaFin}`, rightColX, currentY + lineHeight * 2);
+            pdf.text(`Fecha Fin: ${fechaFin}`, rightColX, currentY + lineHeight * 3);
         }
-        pdf.text(`Técnico: ${acta.creator?.name || ''}`, rightColX, currentY + lineHeight * 3);
 
         const lineY = currentY + lineHeight * 6 + 10;
         pdf.setLineWidth(1);

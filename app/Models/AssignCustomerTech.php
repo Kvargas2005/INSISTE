@@ -30,4 +30,9 @@ class AssignCustomerTech extends Model
     {
         return $this->belongsTo(User::class, 'id_customer');
     }
+
+      public function services()
+    {
+        return $this->belongsToMany(Service::class, 'assign_customer_tech_service', 'assign_id', 'service_id');
+    }
 }

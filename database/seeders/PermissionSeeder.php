@@ -15,7 +15,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'update_user', 'description' => 'Actualizar usuarios', 'main' => 'Usuarios'],
             ['name' => 'deactivate_user', 'description' => 'Desactivar usuarios', 'main' => 'Usuarios'],
             ['name' => 'view_permission', 'description' => 'Ver permisos', 'main' => 'Usuarios'],
-            ['name' => 'assing_permission', 'description' => 'Asignar permisos', 'main' => 'Usuarios'],
+            ['name' => 'assign_permissions', 'description' => 'Asignar permisos', 'main' => 'Usuarios'],
             ['name' => 'view_supliers', 'description' => 'Ver proveedores', 'main' => 'Proveedores'],
             ['name' => 'create_supliers', 'description' => 'Crear proveedores', 'main' => 'Proveedores'],
             ['name' => 'update_supliers', 'description' => 'Actualizar proveedores', 'main' => 'Proveedores'],

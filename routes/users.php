@@ -45,6 +45,8 @@ Route::middleware('rol:admin,tecnico')->group(function () {
 
 });
 
-
-Route::get('/users/{id}/permissions', [UsersController::class, 'showPermissions'])->name('users.showPermissions');
-Route::post('/users/{id}/permissions', [UsersController::class, 'assignPermissions'])->name('users.assignPermissions');
+// Proteger rutas de permisos
+Route::middleware(['rol:admin', 'permiso:assign_permissions'])->group(function () {
+    Route::get('/users/{id}/permissions', [UsersController::class, 'showPermissions'])->name('users.showPermissions');
+    Route::post('/users/{id}/permissions', [UsersController::class, 'assignPermissions'])->name('users.assignPermissions');
+});

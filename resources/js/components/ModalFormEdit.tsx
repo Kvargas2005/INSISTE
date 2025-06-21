@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
+import Select from 'react-select';
 
 interface EditModalFormProps {
     id: number;
@@ -18,26 +19,32 @@ interface EditModalFormProps {
 }
 
 export default function EditModalForm({ id, fetchRoute, postRoute, title, inputs, onClose }: EditModalFormProps) {
-    type FormData = { [key: string]: string | number | boolean | null };
+    type FormData = { [key: string]: string | number | boolean | null | (string | number)[] };
     const { data, setData, setDefaults, post, processing, errors } = useForm<FormData>({});
 
     useEffect(() => {
         fetch(route(fetchRoute, { id }))
             .then(response => response.json())
             .then(json => {
-                console.log('Fetched data:', json.data);
                 Object.entries(json.data).forEach(([key, value]) => {
-                    setData(key, value as string | number | boolean | null); 
-                });                
+                    if (key === 'services') {
+                        setData(key, Array.isArray(value) ? value : []);
+                    } else {
+                        setData(key, value as string | number | boolean | null);
+                    }
+                });
             });
-            
     }, [id]);
-    
 
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route(postRoute, { id }), { onSuccess: () => onClose() });
+        // Si el campo services es array, lo mandamos como string separado por comas
+        const sendData = { ...data };
+        if (Array.isArray(sendData.services)) {
+            sendData.services = sendData.services.join(',');
+        }
+        post(route(postRoute, { id }), { ...sendData, onSuccess: () => onClose() });
     };
 
     return (
@@ -47,7 +54,20 @@ export default function EditModalForm({ id, fetchRoute, postRoute, title, inputs
                 <form onSubmit={submit}>
                     {inputs.map((input) => (
                         <div key={input.name} className="mb-6 relative">
-                            {input.options ? (
+                            {input.options && input.name === 'services' ? (
+                                <Select
+                                    id={input.name}
+                                    options={input.options}
+                                    isMulti
+                                    value={
+                                        Array.isArray(data[input.name])
+                                            ? input.options.filter((o) => (data[input.name] as (string | number)[]).includes(o.value))
+                                            : []
+                                    }
+                                    onChange={(selected) => setData(input.name, Array.isArray(selected) ? selected.map((s) => s.value) : [])}
+                                    className="w-full"
+                                />
+                            ) : input.options ? (
                                 <select
                                     id={input.name}
                                     value={String(data[input.name] ?? '')}

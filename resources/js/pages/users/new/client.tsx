@@ -123,14 +123,14 @@ export default function Register({ main_users }: Props) {
                     </div>
 
                     <div>
-                        <Label htmlFor="main_user">Casa Matriz</Label>
+                        <Label htmlFor="main_user">Cliente</Label>
                         <select
                             id="main_user"
                             value={data.id_main_user}
                             onChange={(e) => setData('id_main_user', Number(e.target.value))}
                             className="block w-full border rounded px-3 py-2 text-sm bg-white"
                         >
-                            <option value="">Seleccione una Casa Matriz</option>
+                            <option value="">Seleccione una Cliente</option>
                             {main_users.map((main_user) => (
                                 <option key={main_user.id} value={main_user.id}>{main_user.name}</option>
                             ))}

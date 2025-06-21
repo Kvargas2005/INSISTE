@@ -39,35 +39,46 @@ export default function DashboardCustomer() {
   return (
     <AppLayout>
       <Head title="Inicio Cliente" />
-      <div className="p-4">
-        <h2 className="text-2xl font-bold mb-6">Buenos días, {auth.user.name.split(' ')[0]}!</h2>
+      
+      {/* Contenedor general que garantiza el footer al fondo */}
+      <div className="min-h-screen flex flex-col">
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card
-            title="Actas"
-            description="Consultar las actas de mis visitas"
-            icon={Newspaper}
-            color="#EABB4E"
-            gradient="linear-gradient(to top, #EABB4E 0%, #FAD173 71%, #E8CB87 100%)"
-            href="/actas/list"
-          />
-          <Card
-            title="Reseñas"
-            description="Reseñar una visita"
-            icon={Star}
-            color="#A3A3A3"
-            gradient="linear-gradient(to top, #A3A3A3 0%, #878383 71%, #575969 100%)"
-            href=""
-          />
-          <Card
-            title="Código"
-            description="Generar código verificación"
-            icon={ShieldCheck}
-            color="#fda4af"
-            gradient="linear-gradient(to top, #fda4af 0%, #fb7185 71%, #f43f5e 100%)"
-            href="/codigo-verificacion"
-          />
-        </div>
+        {/* Contenido que crece */}
+        <main className="flex-grow p-4">
+          <h2 className="text-2xl font-bold mb-6">Buenos días, {auth.user.name.split(' ')[0]}!</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card
+              title="Actas"
+              description="Consultar las actas de mis visitas"
+              icon={Newspaper}
+              color="#EABB4E"
+              gradient="linear-gradient(to top, #EABB4E 0%, #FAD173 71%, #E8CB87 100%)"
+              href="/actas/list"
+            />
+            <Card
+              title="Reseñas"
+              description="Reseñar una visita"
+              icon={Star}
+              color="#A3A3A3"
+              gradient="linear-gradient(to top, #A3A3A3 0%, #878383 71%, #575969 100%)"
+              href=""
+            />
+            <Card
+              title="Código"
+              description="Generar código verificación"
+              icon={ShieldCheck}
+              color="#fda4af"
+              gradient="linear-gradient(to top, #fda4af 0%, #fb7185 71%, #f43f5e 100%)"
+              href="/codigo-verificacion"
+            />
+          </div>
+        </main>
+
+        {/* Footer nav al final */}
+        <nav className="text-gray-500 text-center py-2 text-sm font-semibold">
+          INTRA Seguridad Electrónica SE, S.A.
+        </nav>
       </div>
     </AppLayout>
   );

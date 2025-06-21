@@ -19,16 +19,23 @@ interface Technician {
     name: string;
 }
 
+interface Service {
+    id: number;
+    description: string;
+}
+
 interface Props {
     customers: Customer[];
     technicians: Technician[];
+    services: Service[];
 }
 
-export default function AssignCustomerTech({ customers, technicians }: Props) {
+export default function AssignCustomerTech({ customers, technicians, services }: Props) {
     const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>(customers);
     const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [individualCustomerId, setIndividualCustomerId] = useState<number | null>(null);
+    const [multiAssignIndex, setMultiAssignIndex] = useState<number>(0);
 
     useEffect(() => {
         setFilteredCustomers(customers);
@@ -48,6 +55,10 @@ export default function AssignCustomerTech({ customers, technicians }: Props) {
             prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
         );
     };
+
+    // Helper para cliente actual en multi-asignación
+    const currentCustomerId = selectedCustomers[multiAssignIndex] ?? null;
+    const currentCustomer = customers.find(c => c.id === currentCustomerId);
 
     return (
         <>
@@ -85,13 +96,14 @@ export default function AssignCustomerTech({ customers, technicians }: Props) {
 
                     <Button
                         onClick={() => {
+                            setMultiAssignIndex(0);
                             setShowModal(true);
-                            setIndividualCustomerId(null);
+                            setIndividualCustomerId(selectedCustomers[0] ?? null);
                         }}
                         className="bg-blue-600 text-white"
                         disabled={selectedCustomers.length === 0}
                     >
-                        Asignar
+                        Asignar Seleccionados
                     </Button>
                 </div>
 
@@ -100,8 +112,8 @@ export default function AssignCustomerTech({ customers, technicians }: Props) {
                         <thead className="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th className="text-left px-4 py-2">Seleccionar</th>
+                                <th className="text-left px-4 py-2">Local</th>
                                 <th className="text-left px-4 py-2">Cliente</th>
-                                <th className="text-left px-4 py-2">Casa Matriz</th>
                                 <th className="text-left px-4 py-2">Teléfono</th>
                                 <th className="text-left px-4 py-2">Estado</th>
                                 <th className="text-left px-4 py-2">Acciones</th>
@@ -142,6 +154,7 @@ export default function AssignCustomerTech({ customers, technicians }: Props) {
                                                 onClick={() => {
                                                     setShowModal(true);
                                                     setIndividualCustomerId(customer.id);
+                                                    setMultiAssignIndex(0);
                                                 }}
                                             >
                                                 Asignar
@@ -161,7 +174,7 @@ export default function AssignCustomerTech({ customers, technicians }: Props) {
 
             {showModal && (
                 <ModalFormCreate
-                    title="Asignar Técnico"
+                    title={`Asignar Técnico a ${individualCustomerId && selectedCustomers.length <= 1 ? customers.find(c => c.id === individualCustomerId)?.name : currentCustomer?.name}`}
                     postRoute="assignCustomerTech.create"
                     inputs={[
                         {
@@ -170,18 +183,34 @@ export default function AssignCustomerTech({ customers, technicians }: Props) {
                             type: 'select',
                             options: technicians.map(t => ({ value: t.id, label: t.name }))
                         },
+                        {
+                            name: 'services',
+                            label: 'Servicios',
+                            type: 'select',
+                            selectType: 'react',
+                            options: services.map(s => ({ value: s.id, label: s.description })),
+                            extra: null,
+                        },
                         { name: 'alert_days', label: 'Aviso de alerta (días)', type: 'text' },
                         { name: 'assign_date', label: 'Fecha de asignación', type: 'datetime-local' },
-                        { name: 'comments', label: 'Notas (opcional)', type: 'textarea' }, // ✅ NUEVO
+                        { name: 'comments', label: 'Notas (opcional)', type: 'textarea' },
                     ]}
-                    extraData={{ selectedCustomers: individualCustomerId ? [individualCustomerId] : selectedCustomers }}
+                    extraData={{ selectedCustomers: [individualCustomerId && selectedCustomers.length <= 1 ? individualCustomerId : currentCustomerId] }}
                     onClose={() => {
-                        setShowModal(false);
-                        setSelectedCustomers([]);
-                        setIndividualCustomerId(null);
+                        if (individualCustomerId && selectedCustomers.length <= 1) {
+                            setShowModal(false);
+                            setIndividualCustomerId(null);
+                        } else if (multiAssignIndex < selectedCustomers.length - 1) {
+                            setMultiAssignIndex(multiAssignIndex + 1);
+                            setIndividualCustomerId(selectedCustomers[multiAssignIndex + 1]);
+                        } else {
+                            setShowModal(false);
+                            setSelectedCustomers([]);
+                            setIndividualCustomerId(null);
+                            setMultiAssignIndex(0);
+                        }
                     }}
                 />
-
             )}
         </>
     );

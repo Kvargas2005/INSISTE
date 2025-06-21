@@ -31,6 +31,11 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+
+        DB::table('main_user')->insert([
+            ['name' => 'TacoBell', 'description' => 'Comidas rapidas', 'status' => '1'],
+
+        ]);
     }
 
     /**

@@ -52,7 +52,7 @@ class CasaMatrizController extends Controller
             'contact_email',
         ]));
 
-        return to_route('users.listClients')->with('success', 'Casa matriz creada correctamente');
+        return to_route('users.listClients')->with('success', 'Cliente creado correctamente');
     }
 
     public function edit($id): Response
@@ -100,7 +100,7 @@ class CasaMatrizController extends Controller
             'contact_email',
         ]));
 
-        return to_route('users.listClients')->with('success', 'Casa matriz actualizada correctamente');
+        return to_route('users.listClients')->with('success', 'Cliente actualizado correctamente');
     }
 
     public function toggleStatus(Request $request): RedirectResponse
