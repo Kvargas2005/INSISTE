@@ -41,3 +41,4 @@ require __DIR__ . '/dashboardTechnician.php';
 require __DIR__ . '/dashboard.php';
 require __DIR__ . '/verificationCode.php';
 require __DIR__ . '/companies.php';
+require __DIR__ . '/payments.php';

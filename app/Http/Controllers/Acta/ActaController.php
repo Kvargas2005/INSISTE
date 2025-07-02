@@ -71,12 +71,16 @@ class ActaController extends Controller
             $scope = $a->delivery_scope ?? '';
             if ($scope && !in_array($scope, $deliveryScopeOptions)) $deliveryScopeOptions[] = $scope;
 
+            // Pagada técnico
+            $hasPayment = $a->payments && $a->payments->count() > 0;
+
             return [
                 ...$a->toArray(),
                 'service_type' => implode(', ', $serviceNames),
                 'delivery_class' => implode(', ', $deliveryNames),
                 'job_type' => implode(', ', $jobNames),
                 'delivery_scope' => $scope,
+                'has_payment' => $hasPayment,
             ];
         });
 

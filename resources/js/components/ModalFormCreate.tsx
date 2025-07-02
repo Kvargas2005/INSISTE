@@ -129,26 +129,15 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
               <label className="block text-sm font-medium mb-1" htmlFor={input.name}>
                 {input.label}
               </label>
-
-              {input.type === 'select' && input.selectType === 'react' && input.name === 'services' ? (
+              {input.extra && (
+                <div className="mb-2">{input.extra}</div>
+              )}
+              {input.type === 'select' && input.selectType === 'react' ? (
                 <Select
                   id={input.name}
                   options={input.options}
-                  isMulti
-                  value={
-                    Array.isArray(data[input.name])
-                      ? input.options?.filter((o) => ((data[input.name] as unknown as (string | number)[]).includes(o.value))) || []
-                      : []
-                  }
-                  onChange={(selected) => setData(input.name, Array.isArray(selected) ? (selected as { value: string | number }[]).map((s) => s.value) : [])}
-                  className="w-full"
-                />
-              ) : input.type === 'select' && input.selectType === 'react' && input.name === 'id_component' ? (
-                <Select
-                  id={input.name}
-                  options={filteredOptions}
-                  value={filteredOptions.find((o) => o.value === data[input.name]) || null}
-                  onChange={(selected) => setData(input.name, selected?.value ?? '')}
+                  value={input.options?.find((o) => o.value === data[input.name]) || null}
+                  onChange={(selected) => setData(input.name, (selected as any)?.value ?? '')}
                   className="w-full"
                 />
               ) : input.type === 'select' ? (
@@ -189,7 +178,6 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
                   className="w-full border rounded px-3 py-2"
                 />
               )}
-
               {errors[input.name] && (
                 <div className="text-red-500 text-sm mt-1">{errors[input.name]}</div>
               )}

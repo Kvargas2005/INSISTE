@@ -22,7 +22,7 @@ export function AppSidebar() {
       children: [
         { title: 'Cotización', href: '', icon: ReceiptText },
         { title: 'Facturación', href: '', icon: Receipt },
-        { title: 'Transacciones', href: '', icon: Banknote },
+        { title: 'Transacciones', href: '/payments', icon: Banknote },
       ],
     },
     {

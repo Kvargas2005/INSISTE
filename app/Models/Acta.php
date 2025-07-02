@@ -76,5 +76,10 @@ class Acta extends Model
         return $this->belongsTo(User::class, 'id_created_by');
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'id_acta');
+    }
+
 
 }

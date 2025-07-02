@@ -470,7 +470,7 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     </td>
                                     {auth.user.id_role === 1 && (
                                         <>
-                                            <td className="px-4 py-2">-</td>
+                                            <td className="px-4 py-2">{acta.has_payment ? 'Sí' : 'No'}</td>
                                             <td className="px-4 py-2">-</td>
                                         </>
                                     )}
