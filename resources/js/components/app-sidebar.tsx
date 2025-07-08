@@ -69,7 +69,7 @@ export function AppSidebar() {
       children: [
         { title: 'Historial Actas', href: '/actas/list', icon: Newspaper },
         { title: 'Visitas', href: '/assignCustomerTech', icon: CalendarClock },
-        { title: 'Cronograma', href: '', icon: CalendarClock },
+        { title: 'Cronograma', href: '/calendar', icon: CalendarClock },
         { title: 'Reseñas', href: '', icon: Star },
       ],
     },

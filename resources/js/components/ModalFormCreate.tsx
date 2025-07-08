@@ -136,8 +136,19 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
                 <Select
                   id={input.name}
                   options={input.options}
-                  value={input.options?.find((o) => o.value === data[input.name]) || null}
-                  onChange={(selected) => setData(input.name, (selected as any)?.value ?? '')}
+                  isMulti={input.name === 'services'} // Permitir multi solo para servicios
+                  value={
+                    input.name === 'services'
+                      ? input.options?.filter((o) => Array.isArray(data[input.name]) && (data[input.name] as any[]).includes(o.value))
+                      : input.options?.find((o) => o.value === data[input.name]) || null
+                  }
+                  onChange={(selected) => {
+                    if (input.name === 'services') {
+                      setData(input.name, Array.isArray(selected) ? selected.map((s: any) => s.value) : []);
+                    } else {
+                      setData(input.name, (selected as any)?.value ?? '');
+                    }
+                  }}
                   className="w-full"
                 />
               ) : input.type === 'select' ? (

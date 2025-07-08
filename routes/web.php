@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboardAcc', function () {
         return Inertia::render('dashboardAcc');
     })->name('dashboardAcc');
+    Route::get('calendar', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
 
 });
 

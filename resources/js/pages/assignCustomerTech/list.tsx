@@ -188,6 +188,7 @@ export default function AssignCustomerTech({ customers, technicians, services }:
                             label: 'Servicios',
                             type: 'select',
                             selectType: 'react',
+                            isMulti: true, // Permitir selección múltiple
                             options: services.map(s => ({ value: s.id, label: s.description })),
                             extra: null,
                         },
