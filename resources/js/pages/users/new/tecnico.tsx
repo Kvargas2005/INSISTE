@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useState, useRef } from 'react';
+import { LoaderCircle, UploadCloud } from 'lucide-react';
+import React, { useState, useRef, useEffect, FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ import AppLayout from '@/layouts/app-layout';
 import AdressForm from '@/components/AdressForm';
 import SignatureCanvas from 'react-signature-canvas';
 import { showError } from '@/components/SwalUtils';
+
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Nuevo Tecnico', href: '/users/new/tecnico' },
@@ -71,14 +73,16 @@ export default function Register() {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [processing, setProcessing] = useState(false);
 
+    const [newFiles, setNewFiles] = useState<File[]>([]);
+    const [newFilesPreview, setNewFilesPreview] = useState<string[]>([]);
+    const dropRef = useRef<HTMLDivElement>(null);
+
     const signatureDataTech = () => {
-        if (techSigRef.current.toData() == '' || techSigRef.current.toData() == undefined) {
+        if (!techSigRef.current || techSigRef.current.toData().length === 0) {
             showError('Falta firma del técnico');
             return;
         }
-
-        const sig = JSON.stringify(techSigRef.current.toData())
-
+        const sig = JSON.stringify(techSigRef.current.toData());
         setData((prev) => ({ ...prev, technician_signature: sig }));
     };
 
@@ -100,24 +104,78 @@ export default function Register() {
         setData((prev) => ({ ...prev, [field]: value }));
     };
 
+    // Drag and drop para archivos nuevos (agregar, no reemplazar)
+    useEffect(() => {
+        const dropArea = dropRef.current;
+        if (!dropArea) return;
+        const handleDragOver = (e: DragEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.add('ring-2', 'ring-blue-400');
+        };
+        const handleDragLeave = (e: DragEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove('ring-2', 'ring-blue-400');
+        };
+        const handleDrop = (e: DragEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove('ring-2', 'ring-blue-400');
+            if (e.dataTransfer && e.dataTransfer.files) {
+                setNewFiles((prev: File[]) => [...prev, ...Array.from(e.dataTransfer.files ?? [])]);
+            }
+        };
+        dropArea.addEventListener('dragover', handleDragOver);
+        dropArea.addEventListener('dragleave', handleDragLeave);
+        dropArea.addEventListener('drop', handleDrop);
+        return () => {
+            dropArea.removeEventListener('dragover', handleDragOver);
+            dropArea.removeEventListener('dragleave', handleDragLeave);
+            dropArea.removeEventListener('drop', handleDrop);
+        };
+    }, []);
+
+    // Cambiar handleFilesChange para agregar archivos
+    const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setNewFiles((prev: File[]) => [...prev, ...Array.from(e.target.files ?? [])]);
+        }
+    };
+
+    // Eliminar archivo nuevo antes de guardar
+    const handleRemoveNewFile = (idx: number) => {
+        setNewFiles((prev: File[]) => prev.filter((_, i) => i !== idx));
+    };
+
+    // Previsualización de archivos nuevos
+    useEffect(() => {
+        if (!newFiles.length) {
+            setNewFilesPreview([]);
+            return;
+        }
+        const urls = newFiles.map((file: File) => {
+            if (file.type.startsWith('image/')) {
+                return URL.createObjectURL(file);
+            }
+            return '';
+        });
+        setNewFilesPreview(urls);
+        return () => {
+            urls.forEach((url: string) => url && URL.revokeObjectURL(url));
+        };
+    }, [newFiles]);
+
     const submit: FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
-
         if (!data.technician_signature) {
             return showError('Falta la firma');
         } else {
             const formData = new FormData();
-
             Object.entries(data).forEach(([key, value]) => {
                 formData.append(key, String(value));
             });
-
-            if (files) {
-                Array.from(files).forEach((file) => {
-                    formData.append('files[]', file);
-                });
-            }
-
+            newFiles.forEach((file: File) => formData.append('files[]', file));
             setProcessing(true);
             router.post(route('register'), formData, {
                 onError: (e) => {
@@ -257,58 +315,7 @@ export default function Register() {
 
 
 
-                    <div>
-                        <Label htmlFor="files">Documentos (CV, títulos, etc.)</Label>
-                        <input
-                            id="files"
-                            type="file"
-                            multiple
-                            onChange={(e) => setFiles(e.target.files)}
-                            className="block w-full"
-                        />
-                        <InputError message={errors['files.*']} />
-                    </div>
-                    {files && (
-                        <div className="col-span-2">
-                            <h4 className="font-semibold text-gray-700 mb-2">Archivos seleccionados:</h4>
-                            <ul className="grid grid-cols-2 gap-4">
-                                {Array.from(files).map((file, index) => (
-                                    <li key={index} className="flex items-center gap-3 bg-gray-50 p-2 rounded shadow-sm relative">
-                                        {/* Botón de eliminar */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const updatedFiles = new DataTransfer();
-                                                Array.from(files)
-                                                    .filter((_, i) => i !== index)
-                                                    .forEach((f) => updatedFiles.items.add(f));
-                                                setFiles(updatedFiles.files);
-                                            }}
-                                            className="absolute top-1 right-1 text-red-500 hover:text-red-700"
-                                        >
-                                            ❌
-                                        </button>
 
-                                        {/* Vista previa de imagen o ícono genérico */}
-                                        {file.type.startsWith('image/') ? (
-                                            <img
-                                                src={URL.createObjectURL(file)}
-                                                alt={file.name}
-                                                className="w-16 h-16 object-cover rounded"
-                                            />
-                                        ) : (
-                                            <div className="w-16 h-16 bg-gray-200 text-center text-sm flex items-center justify-center rounded">
-                                                📄
-                                            </div>
-                                        )}
-
-                                        {/* Nombre del archivo */}
-                                        <span className="text-sm truncate">{file.name}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
 
 
                     <div className="col-span-2 mt-4">
@@ -381,6 +388,65 @@ export default function Register() {
                         </div>
                         <InputError message={errors.technician_signature} />
                     </div>
+
+                    <div className="col-span-2">
+                        <Label className="mb-2 block">Documentos (CV, títulos, etc.)</Label>
+                        <div
+                            ref={dropRef}
+                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                            onClick={() => document.getElementById('files')?.click()}
+                            style={{ position: 'relative' }}
+                        >
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <UploadCloud className="w-10 h-10 mb-3 text-gray-400" />
+                                <p className="mb-2 text-sm text-gray-500 text-center">
+                                    <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta archivos aquí
+                                </p>
+                                <p className="text-xs text-gray-400">Formatos permitidos: PDF, JPG, PNG, DOCX, etc.</p>
+                            </div>
+                            <input
+                                id="files"
+                                type="file"
+                                multiple
+                                onChange={handleFilesChange}
+                                className="hidden"
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            />
+                        </div>
+                        <InputError message={errors['files.*']} />
+                    </div>
+                    {newFiles.length > 0 && (
+                        <div className="col-span-2">
+                            <h4 className="font-semibold text-gray-700 mb-2">Archivos seleccionados:</h4>
+                            <ul className="grid grid-cols-4 gap-4">
+                                {newFiles.map((file: File, index: number) => (
+                                    <li key={index} className="flex flex-col items-center gap-1 bg-gray-50 p-2 rounded shadow-sm relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveNewFile(index)}
+                                            className="absolute top-1 right-1 text-red-500 hover:text-red-700"
+                                        >
+                                            ❌
+                                        </button>
+                                        {file.type.startsWith('image/') ? (
+                                            <img
+                                                src={newFilesPreview[index]}
+                                                alt={file.name}
+                                                className="w-16 h-16 object-cover rounded"
+                                            />
+                                        ) : file.name.match(/\.(pdf)$/i) ? (
+                                            <div className="w-16 h-16 bg-red-100 text-red-600 flex items-center justify-center rounded">PDF</div>
+                                        ) : file.name.match(/\.(doc|docx)$/i) ? (
+                                            <div className="w-16 h-16 bg-blue-100 text-blue-600 flex items-center justify-center rounded">DOC</div>
+                                        ) : (
+                                            <div className="w-16 h-16 bg-gray-200 text-center text-sm flex items-center justify-center rounded">📄</div>
+                                        )}
+                                        <span className="text-xs text-center max-w-[80px] truncate">{file.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     <div className="col-span-2 mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
                         <a href="/users/tecnicos">

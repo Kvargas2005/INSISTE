@@ -38,6 +38,7 @@ require __DIR__ . '/assingInvTech.php';
 require __DIR__ . '/brands.php';
 require __DIR__ . '/movements.php';
 require __DIR__ . '/actas.php';
+require __DIR__ . '/reviews.php';
 require __DIR__ . '/dashboardTechnician.php';
 require __DIR__ . '/dashboard.php';
 require __DIR__ . '/verificationCode.php';

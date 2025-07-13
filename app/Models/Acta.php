@@ -41,6 +41,11 @@ class Acta extends Model
         return $this->belongsTo(User::class, 'id_for');
     }
 
+    public function customer(): BelongsTo
+    {
+        return $this->client();
+    }
+
     public function components(): HasMany
     {
         return $this->hasMany(ActaDetailComponent::class, 'id_acta');

@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, UploadCloud } from 'lucide-react';
 import React, { FormEventHandler, useState, useEffect, useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import InputError from '@/components/input-error';
@@ -71,7 +71,7 @@ type RegisterForm = {
   social_security: string;
   personal_email: string;
   tech_type: string;
-  files?: FileList | null;
+  files?: File[]; // Cambiado de FileList | null a File[]
   deleted_files?: number[];
 };
 
@@ -101,7 +101,7 @@ export default function EditTecnico({ user, roles }: Props) {
     social_security: user.social_security,
     personal_email: user.personal_email,
     tech_type: user.tech_type,
-    files: null,
+    files: [], // Cambiado de null a []
     deleted_files: [],
   });
 
@@ -138,9 +138,73 @@ export default function EditTecnico({ user, roles }: Props) {
     setData((prev) => ({ ...prev, tech_signature: sig }));
   };
 
+  // Estados para archivos nuevos y previews
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newFilesPreview, setNewFilesPreview] = useState<string[]>([]);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  // Cambiar handleNewFilesChange para agregar archivos
   const handleNewFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setData(prev => ({ ...prev, files: e.target.files }));
+    if (e.target.files) {
+      setNewFiles((prev: File[]) => [...prev, ...Array.from(e.target.files as FileList)]);
+    }
   };
+
+  // Drag and drop para archivos nuevos (agregar, no reemplazar)
+  useEffect(() => {
+    const dropArea = dropRef.current;
+    if (!dropArea) return;
+
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropArea.classList.add('ring-2', 'ring-blue-400');
+    };
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropArea.classList.remove('ring-2', 'ring-blue-400');
+    };
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropArea.classList.remove('ring-2', 'ring-blue-400');
+      if (e.dataTransfer && e.dataTransfer.files) {
+        setNewFiles((prev: File[]) => [...prev, ...Array.from(e.dataTransfer!.files)]);
+      }
+    };
+    dropArea.addEventListener('dragover', handleDragOver);
+    dropArea.addEventListener('dragleave', handleDragLeave);
+    dropArea.addEventListener('drop', handleDrop);
+    return () => {
+      dropArea.removeEventListener('dragover', handleDragOver);
+      dropArea.removeEventListener('dragleave', handleDragLeave);
+      dropArea.removeEventListener('drop', handleDrop);
+    };
+  }, []);
+
+  // Eliminar archivo nuevo antes de guardar
+  const handleRemoveNewFile = (idx: number) => {
+    setNewFiles((prev: File[]) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Previsualización de archivos nuevos
+  useEffect(() => {
+    if (!newFiles.length) {
+      setNewFilesPreview([]);
+      return;
+    }
+    const urls = newFiles.map((file: File) => {
+      if (file.type.startsWith('image/')) {
+        return URL.createObjectURL(file);
+      }
+      return '';
+    });
+    setNewFilesPreview(urls);
+    return () => {
+      urls.forEach((url: string) => url && URL.revokeObjectURL(url));
+    };
+  }, [newFiles]);
 
   const handleAdressChange = (field: string, value: string) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -181,9 +245,7 @@ export default function EditTecnico({ user, roles }: Props) {
     formData.append('tech_type', data.tech_type);
 
 
-    if (data.files) {
-      Array.from(data.files).forEach(file => formData.append('files[]', file));
-    }
+    newFiles.forEach((file: File) => formData.append('files[]', file));
 
     (data.deleted_files ?? []).forEach(id => formData.append('deleted_files[]', id.toString()));
 
@@ -349,40 +411,7 @@ export default function EditTecnico({ user, roles }: Props) {
             <InputError message={errors.code} />
           </div>
 
-          {/* Archivos existentes */}
-          <div className="col-span-2 mt-6">
-            <Label>Archivos actuales</Label>
-            {existingFiles.length === 0 && <p>No hay archivos cargados</p>}
-            <ul>
-              {existingFiles.map(file => (
-                <li key={file.id} className="flex items-center justify-between py-1">
-                  <a href={`/storage/${file.path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {file.filename}
-                  </a>
-                  <button
-                    type="button"
-                    className="ml-4 text-red-600 hover:text-red-800"
-                    onClick={() => handleRemoveExistingFile(file.id)}
-                  >
-                    Eliminar
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Subir archivos nuevos */}
-          <div className="col-span-2 mt-4">
-            <Label htmlFor="files">Agregar nuevos archivos</Label>
-            <input
-              type="file"
-              id="files"
-              multiple
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              onChange={handleNewFilesChange}
-            />
-            <InputError message={errors['files.*']} />
-          </div>
 
           <div className="flex flex-col gap-2 items-center">
             <Label className='text-gray-400'>Firma del Cliente</Label>
@@ -407,6 +436,107 @@ export default function EditTecnico({ user, roles }: Props) {
               </button>
             </div>
             <InputError message={errors.client_signature} />
+          </div>
+
+          {/* Archivos existentes */}
+          <div className="col-span-2 mt-6">
+            <Label>Archivos actuales</Label>
+            {existingFiles.length === 0 && <p>No hay archivos cargados</p>}
+            <ul>
+              {existingFiles.map(file => (
+                <li key={file.id} className="flex items-center justify-between py-1 gap-4">
+                  <div className="flex items-center gap-2">
+                    {/* Vista previa segun tipo */}
+                    {file.filename.match(/\.(jpg|jpeg|png)$/i) ? (
+                      <img
+                        src={`/storage/${file.path}`}
+                        alt={file.filename}
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                    ) : file.filename.match(/\.(pdf)$/i) ? (
+                      <span className="w-12 h-12 flex items-center justify-center bg-red-100 text-red-600 rounded border">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      </span>
+                    ) : file.filename.match(/\.(doc|docx)$/i) ? (
+                      <span className="w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-600 rounded border">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      </span>
+                    ) : (
+                      <span className="w-12 h-12 flex items-center justify-center bg-gray-100 text-gray-600 rounded border">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-file"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      </span>
+                    )}
+                    <a href={`/storage/${file.path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                      {file.filename}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    className="ml-4 text-red-600 hover:text-red-800"
+                    onClick={() => handleRemoveExistingFile(file.id)}
+                  >
+                    Eliminar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Subir archivos nuevos */}
+          <div className="col-span-2 mt-4">
+            <Label className="mb-2 block">Agregar nuevos archivos</Label>
+            <div
+              ref={dropRef}
+              className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+              onClick={() => document.getElementById('files')?.click()}
+              style={{ position: 'relative' }}
+            >
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <UploadCloud className="w-10 h-10 mb-3 text-gray-400" />
+                <p className="mb-2 text-sm text-gray-500 text-center">
+                  <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta archivos aquí
+                </p>
+                <p className="text-xs text-gray-400">PDF, DOCX, JPG, PNG, etc.</p>
+              </div>
+              <input
+                id="files"
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                onChange={handleNewFilesChange}
+                className="hidden"
+              />
+            </div>
+            {/* Previsualización de archivos nuevos */}
+            {newFiles.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-4">
+                <ul className="grid grid-cols-4 gap-4 w-full">
+                  {newFiles.map((file: File, idx: number) => (
+                    <li key={idx} className="flex flex-col items-center gap-1 bg-gray-50 p-2 rounded shadow-sm relative">
+                      {file.type.startsWith('image/') ? (
+                        <img src={newFilesPreview[idx]} alt={file.name} className="w-16 h-16 object-cover rounded" />
+                      ) : file.name.match(/\.(pdf)$/i) ? (
+                        <div className="w-16 h-16 bg-red-100 text-red-600 flex items-center justify-center rounded">PDF</div>
+                      ) : file.name.match(/\.(doc|docx)$/i) ? (
+                        <div className="w-16 h-16 bg-blue-100 text-blue-600 flex items-center justify-center rounded">DOC</div>
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 text-center text-sm flex items-center justify-center rounded">📄</div>
+                      )}
+                      <span className="text-xs text-center max-w-[80px] truncate">{file.name}</span>
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full w-6 h-6 flex items-center justify-center text-red-600 shadow group-hover:visible visible"
+                        onClick={() => handleRemoveNewFile(idx)}
+                        title="Eliminar archivo"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <InputError message={errors['files.*']} />
           </div>
 
           <div className="col-span-2 mt-6 grid grid-cols-2 gap-x-6 gap-y-4">

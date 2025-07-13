@@ -13,6 +13,7 @@ use App\Models\Service;
 use App\Models\JobType;
 use App\Models\AssignCustomerTech;
 use App\Models\DeliveryClass;
+use App\Models\Review;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -51,7 +52,7 @@ class ActaController extends Controller
         $jobTypeOptions = [];
         $deliveryScopeOptions = [];
 
-        $actas = $actas->map(function ($a) use (&$servicesOptions, &$deliveryClassOptions, &$jobTypeOptions, &$deliveryScopeOptions) {
+        $actas = $actas->map(function ($a) use (&$servicesOptions, &$deliveryClassOptions, &$jobTypeOptions, &$deliveryScopeOptions, $user) {
             // Servicios
             $serviceNames = $a->services->map(fn($s) => $s->service->description ?? '')->filter()->all();
             foreach ($serviceNames as $name) {
@@ -74,6 +75,8 @@ class ActaController extends Controller
             // Pagada técnico
             $hasPayment = $a->payments && $a->payments->count() > 0;
 
+            // --- Review: Solo para clientes ---
+            // Elimina los props de review de la lista de actas para clientes
             return [
                 ...$a->toArray(),
                 'service_type' => implode(', ', $serviceNames),
@@ -519,7 +522,17 @@ class ActaController extends Controller
             ->where('id_acta', $acta->id)
             ->get();
 
-
+        // --- Review integration ---
+        $technicianId = $acta->id_created_by;
+        $actaId = $acta->id;
+        $technicianName = $acta->creator ? $acta->creator->name : '';
+        $fechaVisita = $acta->start_time ? $acta->start_time : null;
+        $alreadyReviewed = false;
+        if ($user->id_role === 2) { // Solo clientes
+            $alreadyReviewed = Review::where('id_acta', $actaId)
+                ->where('id_technician', $technicianId)
+                ->exists();
+        }
 
         return Inertia::render('actas/ShowActa', [
             'acta' => $acta,
@@ -527,6 +540,14 @@ class ActaController extends Controller
             'actaServices' => $actaServices,
             'actaDeliverys' => $actaDeliverys,
             'actaJobs' => $actaJobs,
+            // Review props:
+            'reviewProps' => [
+                'idTechnician' => $technicianId,
+                'idActa' => $actaId,
+                'alreadyReviewed' => $alreadyReviewed,
+                'technicianName' => $technicianName,
+                'fechaVisita' => $fechaVisita,
+            ],
         ]);
     }
 

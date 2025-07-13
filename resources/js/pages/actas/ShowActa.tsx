@@ -36,6 +36,13 @@ interface ActaProps {
     actaServices: any[];
     actaDeliverys: any[];
     actaJobs: any[];
+    reviewProps: {
+        idTechnician: number;
+        idActa: number;
+        alreadyReviewed: boolean;
+        technicianName: string;
+        fechaVisita: string | null;
+    };
 }
 
 const ShowActa: React.FC<ActaProps> = ({
@@ -44,6 +51,7 @@ const ShowActa: React.FC<ActaProps> = ({
     actaServices,
     actaDeliverys,
     actaJobs,
+    reviewProps,
 }) => {
     const printRef = useRef<HTMLDivElement>(null);
 

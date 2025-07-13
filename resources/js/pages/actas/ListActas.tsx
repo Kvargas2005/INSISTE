@@ -20,6 +20,9 @@ interface Acta {
     status: number;
     is_open: number;
     contact: string;
+    alreadyReviewed?: boolean;
+    technicianName?: string;
+    fechaVisita?: string | null;
 }
 
 interface Props {
@@ -290,7 +293,7 @@ export default function ActasList({ actas, canCreate }: Props) {
             )}
 
             {/* TABLA CON RESULTADOS FILTRADOS */}
-            <div className="m-4 shadow rounded-lg overflow-y-auto pb-[100px] overflow-x-auto max-h-[500px] min-h-[500px]">
+            <div className="m-4 shadow rounded-lg overflow-y-auto pb-[100px] overflow-x-auto max-h-[500px] min-h-[500px] relative">
                 <table className="min-w-[900px] w-full border-collapse text-sm text-gray-500 dark:text-gray-400">
                     <thead className="bg-gray-100 dark:bg-gray-700">
                         <tr>

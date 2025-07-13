@@ -170,7 +170,7 @@ class UsersController extends Controller
         // Guardar archivos
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
-                $path = $file->store('user_files'); // se guarda en storage/app/user_files
+                $path = $file->store('user_files', 'public'); // se guarda en storage/app/public/user_files
                 UserFile::create([
                     'user_id' => $user->id,
                     'filename' => $file->getClientOriginalName(),

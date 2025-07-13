@@ -62,7 +62,7 @@ export default function DashboardCustomer() {
               icon={Star}
               color="#A3A3A3"
               gradient="linear-gradient(to top, #A3A3A3 0%, #878383 71%, #575969 100%)"
-              href=""
+              href="/mis-reseñas"
             />
             <Card
               title="Código"
