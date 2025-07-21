@@ -23,9 +23,10 @@ interface ModalFormProps {
   }[];
   onClose: () => void;
   extraData?: Record<string, any>;
+  setExtraData?: React.Dispatch<React.SetStateAction<any>>;
 }
 
-export default function ModalForm({ title, postRoute, inputs, onClose, extraData }: ModalFormProps) {
+export default function ModalForm({ title, postRoute, inputs, onClose, extraData, setExtraData }: ModalFormProps) {
   // Inicializar campos, si es services debe ser array
   const initialData = inputs.reduce((acc, input) => {
     if (input.name === 'services') {
@@ -78,6 +79,8 @@ export default function ModalForm({ title, postRoute, inputs, onClose, extraData
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extraData]);
+
+  // (Eliminado: No sincronizar cambios del formulario hacia el padre para evitar ciclos infinitos)
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();

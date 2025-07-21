@@ -21,7 +21,7 @@ export function AppSidebar() {
       icon: FolderKanban,
       children: [
         { title: 'Cotización', href: '', icon: ReceiptText },
-        { title: 'Facturación', href: '', icon: Receipt },
+        { title: 'Facturación', href: '/customerPayments', icon: Receipt },
         { title: 'Transacciones', href: '/payments', icon: Banknote },
       ],
     },

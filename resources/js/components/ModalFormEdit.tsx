@@ -48,8 +48,8 @@ export default function EditModalForm({ id, fetchRoute, postRoute, title, inputs
     };
 
     return (
-        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ minWidth: '320px' }}>
                 <h2 className="text-xl font-semibold mb-4">{title}</h2>
                 <form onSubmit={submit}>
                     {inputs.map((input) => (

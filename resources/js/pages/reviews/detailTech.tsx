@@ -66,7 +66,19 @@ export default function DetailTech({ technician, reviews }: Props) {
             {reviews.length > 0 ? (
               reviews.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-gray-50 dark:hover:bg-zinc-700">
-                  <td className="px-4 py-2">{r.acta?.code || r.id_acta}</td>
+                  <td className="px-4 py-2">
+                    {r.acta?.code ? (
+                      <Link
+                        href={`/actas/show/${r.acta.id}`}
+                        className="text-blue-600 hover:underline font-semibold transition"
+                        title={`Ver acta ${r.acta.code}`}
+                      >
+                        {r.acta.code}
+                      </Link>
+                    ) : (
+                      r.id_acta
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     <span className="inline-flex items-center gap-1">
                       {[1,2,3,4,5].map(i => (

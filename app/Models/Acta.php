@@ -85,6 +85,9 @@ class Acta extends Model
     {
         return $this->hasMany(Payment::class, 'id_acta');
     }
-
+    public function customerPayments(): HasMany
+    {
+        return $this->hasMany(CustomerPayment::class, 'id_acta');
+    }
 
 }
