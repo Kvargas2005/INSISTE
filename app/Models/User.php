@@ -108,4 +108,10 @@ class User extends Authenticatable
     {
         return $this->permissions()->where('name', $permissionName)->exists();
     }
+
+    // Added: relation to parent main user (cliente)
+    public function mainUser()
+    {
+        return $this->belongsTo(MainUser::class, 'id_main_user');
+    }
 }

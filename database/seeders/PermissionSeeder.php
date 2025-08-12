@@ -64,6 +64,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'create_companies', 'description' => 'Crear empresas', 'main' => 'Empresas'],
             ['name' => 'update_companies', 'description' => 'Actualizar empresas', 'main' => 'Empresas'],
             ['name' => 'deactivate_companies', 'description' => 'Desactivar empresas', 'main' => 'Empresas'],
+            // Clientes (Casa Matriz)
+            ['name' => 'view_clients', 'description' => 'Ver clientes (Casa Matriz)', 'main' => 'Clientes'],
+            ['name' => 'create_clients', 'description' => 'Crear clientes (Casa Matriz)', 'main' => 'Clientes'],
+            ['name' => 'update_clients', 'description' => 'Actualizar clientes (Casa Matriz)', 'main' => 'Clientes'],
+            ['name' => 'deactivate_clients', 'description' => 'Desactivar clientes (Casa Matriz)', 'main' => 'Clientes'],
         ];
         foreach ($permissions as $perm) {
             Permission::firstOrCreate(['name' => $perm['name']], $perm);

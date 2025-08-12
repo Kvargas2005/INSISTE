@@ -53,7 +53,11 @@ export default function ListTechnician({ allTechnician }: Props) {
           <tbody className="text-left">
             {allTechnician.length > 0 ? (
               allTechnician.map((user) => (
-                <tr key={user.id} className="border-t">
+                <tr
+                  key={user.id}
+                  className="border-t"
+                  onClick={() => { window.location.href = `/users/tecnicos/${user.id}`; }}
+                >
                   <td className="px-4 py-2">{user.name}</td>
                   <td className="px-4 py-2">{user.email}</td>
 
@@ -69,7 +73,7 @@ export default function ListTechnician({ allTechnician }: Props) {
                       {user.status === 1 ? 'Activo' : 'Desactivado'}
                     </span>
                     {user.status === 2 && (
-                      <details className="mt-2 text-xs text-left text-gray-600 dark:text-gray-300">
+                      <details className="mt-2 text-xs text-left text-gray-600 dark:text-gray-300" onClick={(e) => e.stopPropagation()}>
                         <summary className="cursor-pointer text-grey-600 hover:underline">Ver detalles</summary>
                         <div className="mt-1 pl-2">
                           <div><b>Motivo:</b> {user.deactivation_note || '-'}</div>
@@ -78,7 +82,7 @@ export default function ListTechnician({ allTechnician }: Props) {
                       </details>
                     )}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                     <a
                       href={`/users/${user.id}/permissions`}
                       className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs"
@@ -87,7 +91,7 @@ export default function ListTechnician({ allTechnician }: Props) {
                       Permisos
                     </a>
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenuList
                       id={user.id}
                       status={user.status}

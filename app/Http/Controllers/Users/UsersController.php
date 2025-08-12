@@ -522,6 +522,44 @@ class UsersController extends Controller
         ]);
     }
 
+    // Added: Technician detail view
+    public function techDetail($id): Response
+    {
+        $technician = User::with(['files' => function ($q) {
+            $q->select('id', 'user_id', 'filename', 'path');
+        }])
+            ->where('id_role', 3)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        return Inertia::render('users/detail/techDetail', [
+            'technician' => $technician,
+        ]);
+    }
+
+    // Added: Local detail view
+    public function localDetail($id): Response
+    {
+        $local = User::with([
+            'files' => function ($q) {
+                $q->select('id', 'user_id', 'filename', 'path');
+            },
+            'mainUser:id,name,description'
+        ])
+            ->where('id_role', 2)
+            ->where('id', $id)
+            ->firstOrFail([
+                'id', 'name', 'email', 'phone', 'status', 'provincia', 'canton', 'distrito', 'adress',
+                'mails', 'opening_hours', 'closing_hours', 'contact1_name', 'contact1_phone', 'contact1_email',
+                'contact2_name', 'contact2_phone', 'contact2_email', 'id_main_user', 'hiringdate', 'rut_nit',
+                'deactivation_note', 'deactivation_date', 'created_at'
+            ]);
+
+        return Inertia::render('users/detail/localDetail', [
+            'local' => $local,
+        ]);
+    }
+
     public function showPermissions($id)
     {
         $user = User::with('permissions')->findOrFail($id);
@@ -547,6 +585,21 @@ class UsersController extends Controller
     {
         return Inertia::render('users/listAdmin', [
             'allAdmins' => User::where('id_role', 1)->select('id', 'name', 'email', 'id_role', 'status')->get(),
+        ]);
+    }
+
+    // Admin detail view
+    public function adminDetail($id): Response
+    {
+        $admin = User::where('id_role', 1)
+            ->where('id', $id)
+            ->firstOrFail([
+                'id', 'name', 'email', 'phone', 'status', 'provincia', 'canton', 'distrito', 'adress',
+                'deactivation_note', 'deactivation_date', 'created_at'
+            ]);
+
+        return Inertia::render('users/detail/adminDetail', [
+            'admin' => $admin,
         ]);
     }
 }

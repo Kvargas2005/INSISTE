@@ -138,7 +138,11 @@ class CustomerPaymentController extends Controller
     {
         $payment = CustomerPayment::with(['acta.client', 'acta.creator', 'relatedPayments'])
             ->findOrFail($id);
-        $allPayments = CustomerPayment::where('id_acta', $payment->id_acta)->orderBy('payment_date')->get();
+        // Cargar todas las facturas ligadas con sus relaciones acta, client y creator
+        $allPayments = CustomerPayment::with(['acta.client', 'acta.creator'])
+            ->where('id_acta', $payment->id_acta)
+            ->orderBy('payment_date')
+            ->get();
         return Inertia::render('CustomerPayment/show', [
             'payment' => $payment,
             'allPayments' => $allPayments,

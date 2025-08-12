@@ -47,7 +47,11 @@ export default function ListLocal({ allClients }: Props) {
                     <tbody className="text-left">
                         {allClients.length > 0 ? (
                             allClients.map((user) => (
-                                <tr key={user.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                <tr
+                                    key={user.id}
+                                    className="border-t hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer"
+                                    onClick={() => { window.location.href = `/users/locales/${user.id}`; }}
+                                >
                                     <td className="px-4 py-2">{user.name}</td>
                                     <td className="px-4 py-2">{user.email}</td>
                                     <td className="px-4 py-2">
@@ -62,7 +66,7 @@ export default function ListLocal({ allClients }: Props) {
                                             {user.status === 1 ? 'Activo' : 'Desactivado'}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                         <a
                                             href={`/users/${user.id}/permissions`}
                                             className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs"
@@ -71,7 +75,7 @@ export default function ListLocal({ allClients }: Props) {
                                             Permisos
                                         </a>
                                     </td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                         <DropdownMenuList
                                             id={user.id}
                                             status={user.status}

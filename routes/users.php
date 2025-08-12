@@ -9,6 +9,7 @@ use App\Http\Controllers\Users\CasaMatrizController;
 Route::middleware(['rol:admin', 'permiso:view_user'])->group(function () {
     Route::get('/users/list', [UsersController::class, 'list'])->name('users.list');
     Route::get('/users/listAdmin', [UsersController::class, 'listAdmin'])->name('users.listAdmin');
+    Route::get('/users/administradores/{id}', [UsersController::class, 'adminDetail'])->name('users.adminDetail');
 });
 
 Route::middleware(['rol:admin', 'permiso:create_user'])->group(function () {
@@ -37,12 +38,22 @@ Route::middleware(['rol:admin', 'permiso:deactivate_user'])->group(function () {
 
 Route::middleware('rol:admin,tecnico')->group(function () {
 
-    Route::get('/users/clientes', [UsersController::class, 'listClients'])->name('users.listClients');
+    Route::middleware(['permiso:view_clients'])->group(function () {
+        Route::get('/users/clientes', [UsersController::class, 'listClients'])->name('users.listClients');
+        Route::get('/users/clientes/{id}', [CasaMatrizController::class, 'detail'])->name('users.casamatrizDetail');
+    });
+    // Toggle Casa Matriz status
+    Route::middleware(['permiso:deactivate_clients'])->group(function () {
+        Route::post('/users/casamatriz/toggle-status', [CasaMatrizController::class, 'toggleStatus'])->name('casamatriz.toggle-status');
+    });
 
     Route::get('/users/locales', [UsersController::class, 'listLocals'])->name('users.listLocals');
 
     Route::get('/users/tecnicos', [UsersController::class, 'listTechnicians'])->name('users.listTechnicians');
 
+    Route::get('/users/tecnicos/{id}', [UsersController::class, 'techDetail'])->name('users.techDetail');
+
+    Route::get('/users/locales/{id}', [UsersController::class, 'localDetail'])->name('users.localDetail');
 });
 
 // Proteger rutas de permisos

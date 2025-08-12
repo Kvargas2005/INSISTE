@@ -117,5 +117,31 @@ class CasaMatrizController extends Controller
         return back()->with('success', 'Estado actualizado correctamente');
     }
 
+    public function detail($id): Response
+    {
+        $mainUser = MainUser::select([
+            'id',
+            'name',
+            'description',
+            'registration_date',
+            'rut_nit',
+            'main_address',
+            'main_phone',
+            'main_email',
+            'contact_firstname',
+            'contact_lastname',
+            'contact_phone',
+            'contact_phone_ext',
+            'contact_mobile',
+            'contact_email',
+            'status',
+            'created_at',
+            'updated_at',
+        ])->findOrFail($id);
+
+        return Inertia::render('users/detail/casamatriz', [
+            'client' => $mainUser,
+        ]);
+    }
 
 }

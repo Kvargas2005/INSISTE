@@ -74,32 +74,20 @@ export default function CustomerPaymentList({ payments, actas }: Props) {
     };
 
     const filteredActas = actas.filter(a => {
-        const dateMatch = filterDate ? (a.created_at && new Date(a.created_at).toLocaleDateString().includes(filterDate)) : true;
+        let dateMatch = true;
+        if (filterDate && a.created_at) {
+            // Comparar solo la parte de fecha (YYYY-MM-DD)
+            const actaDate = new Date(a.created_at).toISOString().slice(0, 10);
+            dateMatch = actaDate === filterDate;
+        }
         const clientMatch = filterClient ? ((a.client?.name || '').toLowerCase().includes(filterClient.toLowerCase())) : true;
         const techMatch = filterTechnician ? ((a.creator?.name || '').toLowerCase().includes(filterTechnician.toLowerCase())) : true;
         return dateMatch && clientMatch && techMatch;
     });
-
+                // ...eliminado bloque duplicado fuera del return...
     return (
         <>
-            <AppLayout breadcrumbs={[{ title: 'Pagos de Cliente', href: '/customerPayments' }]}>            
-                <Head title="Pagos de Cliente" />
-                <div className="flex justify-between m-4">
-                    <div className="relative w-1/3">
-                        <input
-                            type="text"
-                            placeholder="Buscar pago, acta o referencia"
-                            onChange={handleSearch}
-                            className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:text-white pl-10"
-                        />
-                    </div>
-                    <button
-                        onClick={() => setShowModalCreate(true)}
-                        className="px-4 py-2 rounded text-white bg-black"
-                    >
-                        Registrar Pago Cliente
-                    </button>
-                </div>
+            <AppLayout>
                 <div className="m-4 shadow rounded-lg overflow-x-auto max-h-[500px] min-h-[500px]">
                     <table className="min-w-[900px] w-full border-collapse text-sm text-gray-500 dark:text-gray-400">
                         <thead className="bg-gray-100 dark:bg-gray-700">
@@ -169,98 +157,82 @@ export default function CustomerPaymentList({ payments, actas }: Props) {
                 <ModalFormCreate
                     title="Registrar Pago Cliente"
                     postRoute="customerPayments.store"
-                    inputs={[
-                        {
-                            name: 'id_acta',
-                            label: 'Acta',
-                            type: 'select',
-                            selectType: 'react',
-                            options: filteredActas.map(a => ({
-                                value: a.id,
-                                label: `${a.code} | ${(a.creator?.name || 'Sin técnico')} | ${(a.client?.name || 'Sin cliente')} | ${a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}`,
-                                cliente_id: a.client && typeof a.client.id === 'number' ? a.client.id : undefined
-                            })),
-                            extra: (
-                                <div className="flex flex-col md:flex-row gap-2 mb-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Filtrar técnico"
-                                        value={filterTechnician}
-                                        onChange={e => setFilterTechnician(e.target.value)}
-                                        className="border rounded px-3 py-2 flex-grow"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Filtrar cliente"
-                                        value={filterClient}
-                                        onChange={e => setFilterClient(e.target.value)}
-                                        className="border rounded px-3 py-2 flex-grow"
-                                    />
-                                    <input
-                                        type="date"
-                                        placeholder="Filtrar fecha"
-                                        value={filterDate}
-                                        onChange={e => setFilterDate(e.target.value)}
-                                        className="border rounded px-3 py-2 flex-grow"
-                                    />
-                                </div>
-                            )
-                        },
-                        { name: 'voucher_number', label: 'Número Comprobante', type: 'text' },
-                        { name: 'reference', label: 'Referencia', type: 'text' },
-                        { name: 'document_number', label: 'Número Documento', type: 'text' },
-                        { name: 'transaction_type', label: 'Transacción', type: 'text' },
-                        { name: 'receiver', label: 'Receptor', type: 'text' },
-                        { name: 'payment_date', label: 'Fecha de Pago', type: 'date' },
-                        { name: 'currency', label: 'Moneda', type: 'text' },
-                        { name: 'amount', label: 'Monto', type: 'number' },
-                        { name: 'notes', label: 'Notas', type: 'textarea' },
-                        { name: 'is_total', label: 'Total Cancelado', type: 'checkbox' },
-                        {
-                            name: 'linked_payment_id',
-                            label: 'Factura Padre',
-                            type: 'select',
-                            selectType: 'react',
-                            options: payments.map(p => ({
-                                value: p.id,
-                                label: `Pago #${p.id} | ${p.payment_date ? new Date(p.payment_date).toLocaleDateString() : ''} | ₡${p.amount?.toLocaleString()}`
-                            }))
+                    inputs={(() => {
+                        const baseInputs = [
+                            {
+                                name: 'id_acta',
+                                label: 'Acta',
+                                type: 'select',
+                                options: filteredActas.map(a => ({
+                                    value: a.id,
+                                    label: `${a.code} | ${(a.creator?.name || 'Sin técnico')} | ${(a.client?.name || 'Sin cliente')} | ${a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}`
+                                })),
+                                extra: (
+                                    <div className="flex flex-col md:flex-row gap-2 mb-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Filtrar técnico"
+                                            value={filterTechnician}
+                                            onChange={e => setFilterTechnician(e.target.value)}
+                                            className="border rounded px-3 py-2 flex-grow"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Filtrar cliente"
+                                            value={filterClient}
+                                            onChange={e => setFilterClient(e.target.value)}
+                                            className="border rounded px-3 py-2 flex-grow"
+                                        />
+                                        <input
+                                            type="date"
+                                            placeholder="Filtrar fecha"
+                                            value={filterDate}
+                                            onChange={e => setFilterDate(e.target.value)}
+                                            className="border rounded px-3 py-2 flex-grow"
+                                        />
+                                    </div>
+                                )
+                            },
+                            { name: 'voucher_number', label: 'Número Comprobante', type: 'text', extra: <></> },
+                            { name: 'reference', label: 'Referencia', type: 'text', extra: <></> },
+                            { name: 'document_number', label: 'Número Documento', type: 'text', extra: <></> },
+                            { name: 'transaction_type', label: 'Transacción', type: 'text', extra: <></> },
+                            { name: 'receiver', label: 'Receptor', type: 'text', extra: <></> },
+                            { name: 'payment_date', label: 'Fecha de Pago', type: 'date', extra: <></> },
+                            { name: 'currency', label: 'Moneda', type: 'text', extra: <></> },
+                            { name: 'amount', label: 'Monto', type: 'number', extra: <></> },
+                            { name: 'notes', label: 'Notas', type: 'textarea', extra: <></> },
+                            { name: 'is_total', label: 'Total Cancelado', type: 'checkbox', extra: <></> },
+                            {
+                                name: 'is_linked',
+                                label: '¿Es continuación de otro pago?',
+                                type: 'checkbox',
+                                extra: <></>,
+                            },
+                        ];
+                        if (modalData.is_linked) {
+                            baseInputs.push({
+                                name: 'linked_payment_id',
+                                label: 'Factura Padre',
+                                type: 'select',
+                                options: payments
+                                    .filter(p => !p.is_total)
+                                    .map(p => ({
+                                        value: p.id,
+                                        label: `Pago #${p.id} | ${p.payment_date ? new Date(p.payment_date).toLocaleDateString() : ''} | ₡${p.amount?.toLocaleString()}`
+                                    })),
+                                extra: <></>,
+                            });
                         }
-                    ]}
+                        return baseInputs;
+                    })()}
                     onClose={() => setShowModalCreate(false)}
                     extraData={modalData}
                     setExtraData={setModalData}
-                    onFieldChange={(field: string, value: any) => {
-                        if (field === 'id_acta') {
-                            const acta = actas.find(a => a.id === value);
-                            setModalData((prev: any) => ({
-                                ...prev,
-                                id_acta: value,
-                                cliente_id: acta && acta.client && typeof acta.client.id === 'number' ? acta.client.id : '',
-                                cliente_nombre: acta && acta.client && acta.client.name ? acta.client.name : ''
-                            }));
-                        } else {
-                            setModalData((prev: any) => ({ ...prev, [field]: value }));
-                        }
-                    }}
-                    renderInput={(input: any, value: any, onChange: any) => {
-                        if (input.name === 'cliente_id') {
-                            return (
-                                <input
-                                    type="text"
-                                    name="cliente_nombre"
-                                    value={modalData.cliente_nombre ?? ''}
-                                    readOnly
-                                    className="border rounded px-3 py-2 w-full bg-gray-100 text-gray-500"
-                                    placeholder="Cliente"
-                                />
-                            );
-                        }
-                        return undefined;
-                    }}
+                    // onFieldChange removed, logic handled elsewhere
+                    // renderInput removed, logic handled elsewhere
                 />
             )}
-
             {showModalEdit && (
                 <ModalFormEdit
                     id={selectedId}
@@ -272,7 +244,7 @@ export default function CustomerPaymentList({ payments, actas }: Props) {
                             name: 'id_acta',
                             label: 'Acta',
                             type: 'select',
-                            selectType: 'react',
+                            // selectType: 'react',
                             options: actas.map(a => ({
                                 value: a.id,
                                 label: `${a.code} | ${(a.creator?.name || 'Sin técnico')} | ${(a.client?.name || 'Sin cliente')} | ${a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}`
@@ -289,7 +261,18 @@ export default function CustomerPaymentList({ payments, actas }: Props) {
                         { name: 'amount', label: 'Monto', type: 'number' },
                         { name: 'notes', label: 'Notas', type: 'textarea' },
                         { name: 'is_total', label: 'Total Cancelado', type: 'checkbox' },
-                        { name: 'linked_payment_id', label: 'Factura Padre', type: 'number' }
+                        {
+                            name: 'linked_payment_id',
+                            label: 'Factura Padre',
+                            type: 'select',
+                            // selectType: 'react',
+                            options: payments
+                                .filter(p => !p.is_total)
+                                .map(p => ({
+                                    value: p.id,
+                                    label: `Pago #${p.id} | ${p.payment_date ? new Date(p.payment_date).toLocaleDateString() : ''} | ₡${p.amount?.toLocaleString()}`
+                                }))
+                        }
                     ]}
                     onClose={() => setShowModalEdit(false)}
                 />

@@ -49,7 +49,11 @@ export default function ListClient({ main_users }: Props) {
                     <tbody className="text-left">
                         {main_users.length > 0 ? (
                             main_users.map((user) => (
-                                <tr key={user.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                <tr
+                                    key={user.id}
+                                    className="border-t hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                                    onClick={() => { window.location.href = `/users/clientes/${user.id}`; }}
+                                >
                                     <td className="px-4 py-2">{user.name}</td>
                                     <td className="px-4 py-2">{user.main_phone}</td>
                                     <td className="px-4 py-2">{user.main_email}</td>
@@ -75,7 +79,7 @@ export default function ListClient({ main_users }: Props) {
                                         </span>
                                     </td>
                                     
-                                    <td className="px-4 py-2">
+                                    <td className="px-4 py-2" onClick={(e) => e.stopPropagation()}>
                                         <DropdownMenuList
                                             id={user.id}
                                             status={user.status}
