@@ -20,6 +20,8 @@ interface Acta {
     status: number;
     is_open: number;
     contact: string;
+    delivery_scope?: string;
+    has_payment?: boolean;
     alreadyReviewed?: boolean;
     technicianName?: string;
     fechaVisita?: string | null;
@@ -56,6 +58,9 @@ export default function ActasList({ actas, canCreate }: Props) {
     const [filters, setFilters] = React.useState<FilterItem[]>([]);
     const [newFilterKey, setNewFilterKey] = React.useState<string>('');
     const [filteredActas, setFilteredActas] = React.useState<Acta[]>(actas);
+    // Paginación
+    const [pageSize, setPageSize] = React.useState<number>(25);
+    const [currentPage, setCurrentPage] = React.useState<number>(1);
 
     // Obtener opciones de filtros del backend
     const { servicesOptions = [], deliveryClassOptions = [], jobTypeOptions = [], deliveryScopeOptions = [] } = usePage().props as any;
@@ -144,6 +149,23 @@ export default function ActasList({ actas, canCreate }: Props) {
 
         setFilteredActas(result);
     }, [filters, actas]);
+
+    // Resetear a la primera página cuando cambien filtros, actas o el tamaño de página
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filters, actas, pageSize]);
+
+    // Derivados de paginación
+    const totalItems = filteredActas.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalItems);
+    const paginatedActas = filteredActas.slice(startIndex, endIndex);
+
+    const goToPage = (page: number) => {
+        const safePage = Math.min(Math.max(1, page), totalPages);
+        setCurrentPage(safePage);
+    };
 
     // Handler para cerrar acta
     const handleCloseActa = (id: number) => {
@@ -294,6 +316,25 @@ export default function ActasList({ actas, canCreate }: Props) {
 
             {/* TABLA CON RESULTADOS FILTRADOS */}
             <div className="m-4 shadow rounded-lg overflow-y-auto pb-[100px] overflow-x-auto max-h-[500px] min-h-[500px] relative">
+                {/* Barra superior de controles de paginación (opcional) */}
+                <div className="sticky top-0 z-10 flex items-center justify-between bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-2 border-b">
+                    <div className="flex items-center gap-2 text-sm">
+                        <span>Mostrar</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => setPageSize(Number(e.target.value))}
+                            className="border rounded px-2 py-1 text-sm"
+                        >
+                            {[25, 50, 100, 200].map(sz => (
+                                <option key={sz} value={sz}>{sz}</option>
+                            ))}
+                        </select>
+                        <span className="ml-3 hidden sm:inline">Registros</span>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300">
+                        Mostrando {totalItems === 0 ? 0 : startIndex + 1}–{endIndex} de {totalItems}
+                    </div>
+                </div>
                 <table className="min-w-[900px] w-full border-collapse text-sm text-gray-500 dark:text-gray-400">
                     <thead className="bg-gray-100 dark:bg-gray-700">
                         <tr>
@@ -305,9 +346,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar A-Z"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => a.code.localeCompare(b.code))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => a.code.localeCompare(b.code));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▲</button>
                                 <button
@@ -316,9 +359,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar Z-A"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => b.code.localeCompare(a.code))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => b.code.localeCompare(a.code));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▼</button>
                             </th>
@@ -329,9 +374,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar A-Z"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => a.client.name.localeCompare(b.client.name))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => a.client.name.localeCompare(b.client.name));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▲</button>
                                 <button
@@ -340,9 +387,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar Z-A"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => b.client.name.localeCompare(a.client.name))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => b.client.name.localeCompare(a.client.name));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▼</button>
                             </th>
@@ -353,9 +402,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar A-Z"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => a.creator.name.localeCompare(b.creator.name))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => a.creator.name.localeCompare(b.creator.name));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▲</button>
                                 <button
@@ -364,9 +415,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar Z-A"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => b.creator.name.localeCompare(a.creator.name))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => b.creator.name.localeCompare(a.creator.name));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▼</button>
                             </th>
@@ -377,9 +430,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar A-Z"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => a.contact.localeCompare(b.contact))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => a.contact.localeCompare(b.contact));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▲</button>
                                 <button
@@ -388,9 +443,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar Z-A"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => b.contact.localeCompare(a.contact))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => b.contact.localeCompare(a.contact));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▼</button>
                             </th>
@@ -401,9 +458,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar A-Z"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => a.visit_type.localeCompare(b.visit_type))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => a.visit_type.localeCompare(b.visit_type));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▲</button>
                                 <button
@@ -412,9 +471,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Ordenar Z-A"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => b.visit_type.localeCompare(a.visit_type))
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => b.visit_type.localeCompare(a.visit_type));
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▼</button>
                             </th>
@@ -426,9 +487,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Más reciente primero"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▲</button>
                                 <button
@@ -437,9 +500,11 @@ export default function ActasList({ actas, canCreate }: Props) {
                                     title="Más antigua primero"
                                     onClick={e => {
                                         e.stopPropagation();
-                                        setFilteredActas(prev =>
-                                            [...prev].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
-                                        );
+                                        setFilteredActas(prev => {
+                                            const sorted = [...prev].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+                                            setCurrentPage(1);
+                                            return sorted;
+                                        });
                                     }}
                                 >▼</button>
                             </th>
@@ -454,7 +519,7 @@ export default function ActasList({ actas, canCreate }: Props) {
                     </thead>
                     <tbody className="text-left">
                         {filteredActas.length > 0 ? (
-                            filteredActas.map((acta) => (
+                            paginatedActas.map((acta) => (
                                 <tr
                                     key={acta.id}
                                     className="border-t py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group"
@@ -531,6 +596,76 @@ export default function ActasList({ actas, canCreate }: Props) {
                         )}
                     </tbody>
                 </table>
+
+                {/* Controles de paginación abajo */}
+                <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                        <span>Mostrar</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => setPageSize(Number(e.target.value))}
+                            className="border rounded px-2 py-1 text-sm"
+                        >
+                            {[25, 50, 100, 200].map(sz => (
+                                <option key={sz} value={sz}>{sz}</option>
+                            ))}
+                        </select>
+                        <span className="hidden sm:inline">por página</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                            disabled={currentPage <= 1 || totalItems === 0}
+                            onClick={() => goToPage(currentPage - 1)}
+                        >
+                            Anterior
+                        </button>
+                        {/* Números de página con elipsis */}
+                        <div className="flex items-center gap-1">
+                            {(() => {
+                                const pages: (number | 'ellipsis')[] = [];
+                                const maxToShow = 7;
+                                if (totalPages <= maxToShow) {
+                                    for (let p = 1; p <= totalPages; p++) pages.push(p);
+                                } else {
+                                    const addRange = (from: number, to: number) => {
+                                        for (let p = from; p <= to; p++) pages.push(p);
+                                    };
+                                    const left = Math.max(2, currentPage - 1);
+                                    const right = Math.min(totalPages - 1, currentPage + 1);
+                                    pages.push(1);
+                                    if (left > 2) pages.push('ellipsis');
+                                    addRange(left, right);
+                                    if (right < totalPages - 1) pages.push('ellipsis');
+                                    pages.push(totalPages);
+                                }
+                                return pages.map((p, idx) =>
+                                    p === 'ellipsis' ? (
+                                        <span key={`e-${idx}`} className="px-2">…</span>
+                                    ) : (
+                                        <button
+                                            key={p}
+                                            className={`px-3 py-1 border rounded text-sm ${p === currentPage ? 'bg-black text-white border-black' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                                            onClick={() => goToPage(p)}
+                                        >
+                                            {p}
+                                        </button>
+                                    )
+                                );
+                            })()}
+                        </div>
+                        <button
+                            className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                            disabled={currentPage >= totalPages || totalItems === 0}
+                            onClick={() => goToPage(currentPage + 1)}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300">
+                        Mostrando {totalItems === 0 ? 0 : startIndex + 1}–{endIndex} de {totalItems}
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );
